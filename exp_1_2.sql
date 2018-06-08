@@ -118,27 +118,30 @@ where not exists(
 
 # 2-5
 # 查询所有学生除了选修 1 号课程外所有成绩均及格的学生的学号和平均成绩,其结果按平均成绩的降序排列
-select SCX.Sno, avg(SCX.Grade)
-from SC SCX
-where 59 < all(
-  select SCY.Grade
-  from SC SCY
-  where SCY.Sno=SCX.Sno
-    and SCY.Cno!='1'
-) and SCX.Cno != '1'
-group by SCX.Sno
-order by avg(SCX.Grade) desc;
+select Sno, avg(Grade) 
+from SC 
+where Cno<>'1' and Grade>=60 
+group by Sno 
+order by avg(Grade) desc;
 
 # 2-6
 # 查询选修数据库原理成绩第 2 名的学生姓名。
+
+## 法一
 select S.Sname
 from SC, C, S
-where C.Cname='数据库原理'
+where C.Cname='数据库'
   and SC.Sno=S.Sno
   and SC.Cno=C.Cno
 group by SC.Sno
 order by SC.Grade desc
 limit 1, 1;
+
+## 法二
+select Sname from S where Sno in(
+	select Sno from SC,C where SC.Cno=C.Cno and Cname='数据库' and Grade=(
+		select max(Grade) from SC,C where SC.Cno=C.Cno and Cname='数据库' and Grade<>(
+			select max(Grade) from SC,C where SC.Cno=C.Cno and Cname='数据库')));
 
 # 2-7
 # 查询所有 3 个学分课程中有 3 门以上(含 3 门)课程获 80 分以上(含 80 分)的学生的姓名。
@@ -160,6 +163,7 @@ select Sno, count(Cno)
 from SC
 group by Sno;
 
+## 法一
 select distinct SC.Sno
 from SC, (select Sno, count(Cno) Count_CNO from SC group by Sno) as Count_SC
 where not exists(
@@ -169,4 +173,12 @@ where not exists(
   )
   and SC.Sno=Count_SC.Sno;
 
-
+## 法二
+select Sno
+from SC X
+group by Sno
+having count(*) not in
+	(select count(*)
+	from SC Y
+    group by Y.Sno
+    having Y.Sno <> X.Sno);

@@ -10,17 +10,6 @@ update SC
 set Grade = Grade * 1.1
 where Grade is not null
   and Cno='1';
-# How to restrict the grade below 100?
-create trigger SC_Grade_below_100
-after update of Grade on SC
-referencing
-  new row as New
-for each row
-begin
-  if (New.Grade > 100)
-    then New.Grade := 100;
-  end if;
-end;
 
 # 3-2
 # 在 SC 表中删除课程名为数据结构的成绩的元组。
